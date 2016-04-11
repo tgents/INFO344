@@ -20,7 +20,7 @@
         $query = 'SELECT * FROM Players';
         if(isset($_GET['player'])) {
             $searchStr = $_GET['player'];
-            $query += ' WHERE Name LIKE $searchStr'
+            $query += ' WHERE Name LIKE $searchStr';
         }
 
         try {
