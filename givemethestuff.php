@@ -1,29 +1,15 @@
 <?php
-    if(isset($_GET['player'])) {
-        $player = $_GET['player'];
+    try {
+        $conn = new PDO('mysql:host=info344.cnk2klmgrohz.us-west-2.rds.amazonaws.com;port=3306;dbname=info344', 'info344user', 'info344userpassword');
+        $stmt = $conn->prepare('SELECT * FROM Players');
+        $stmt->execute();
 
-        try {
-        	$server = "info344.cnk2klmgrohz.us-west-2.rds.amazonaws.com";
-        	$port = "3306";
-        	$db = 'info344';
-        	$username = 'info344user'
-        	$pw = 'info344userpassword'
-	        $conn = new PDO('mysql:host=$server;port=$port;dbname=$db', $username, $pw);
-	        $stmt = $conn->prepare('SELECT * FROM 'TABLE 1'');
-	        $stmt->execute();
+        $result = $stmt->fetchAll();
 
-	        $result = $stmt->fetchAll();
+        header('Content-Type: application/json');
+        echo json_encode($result);
 
-	        foreach($result as $row) {
-	            print_r($row);
-	            echo "<br>";
-        }
-
-	    } catch(PDOException $e) {
-	        echo 'ERROR: ' . $e->getMessage();
-	    }
-        
-    } else {
-        echo "you didn't give me a player";
+    } catch(PDOException $e) {
+        echo 'ERROR: ' . $e->getMessage();
     }
 ?>
