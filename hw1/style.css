@@ -1,0 +1,26 @@
+body{
+  margin: 0px;
+  margin-right: auto;
+  margin-left: auto;
+  width: 60%;
+}
+
+header {
+  position: fixed; 
+  z-index: 1000;
+  background-color: white;
+
+  margin: 0px;
+  margin-right: auto;
+  margin-left: auto;
+  width: 60%;
+  min-width: 820px;
+}
+
+#players {
+  margin-top: 100px;
+}
+
+.col-md-3 {
+  height: 240px;
+}
