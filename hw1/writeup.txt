@@ -1,0 +1,21 @@
+Requirements breakdown:
+
+[50pts] Website works – searching for player name works!
+Website definitely works.
+
+[20pts] Data is hosted on AWS RDS
+Data is on RDS
+
+[20pts] Website written with PHP & MySQL – PHP best practices & OOP!
+Now this confused me a bit, especially since some bonus points included using AJAX. To update in such a way, means there needs to be a decent amount of client-side processing. For the most part, my website is updated through JavaScript, but I use PHP and MySQL to serve up the data.
+
+I made another site to show how it works using mostly php for site building.
+
+[10pts] Website runs on AWS EC2
+HTML and PHP comes from EC2.
+
+
+Write Up:
+I implemented this site by using PHP to grab data off of RDS and sending it to the client to parse. It basically works like an API and the player list is updated quickly using JavaScript to filter through results.
+
+In order to practice more PHP however, I created another version that used PHP to the same information. It uses HTTP GET parameters to query the database. If the "player" field is not empty, it will add it to the default query. If it is not there or if it is empty, it will just return all players. When it gets results, it will print the names and certain stats.
