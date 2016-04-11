@@ -18,13 +18,11 @@
     </header>
     <div id="players">
       <?php
-        $query = "SELECT * FROM Players";
+        $query = 'SELECT * FROM Players';
         if(isset($_GET['player'])) {
           $searchStr = $_GET['player'];
           if($searchStr != "") {
-            $query .= " WHERE Name LIKE '%%". $searchStr . "%%'";
-            echo '%%';
-            echo "%%";
+            $query .= " WHERE Name LIKE '%$searchStr%'";
             echo $query;
           }
         }
