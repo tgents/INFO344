@@ -38,13 +38,13 @@
           $result = $stmt->fetchAll();
 
           foreach($result as $row) {
-            $player = new Player($row['Name'], $row['Team'], $row['GP'], $row['FG_M'], 
-              $row['FG_A'], $row['3PT_M'], $row['3PT_A'], $row['FT_M'], $row['FT_A'], 
-              $row['Rebounds_Tot'], $row['Ast'], $row['Stl'], $row['Blk'], $row['PPG']);
+            // $player = new Player($row['Name'], $row['Team'], $row['GP'], $row['FG_M'], 
+            //   $row['FG_A'], $row['3PT_M'], $row['3PT_A'], $row['FT_M'], $row['FT_A'], 
+            //   $row['Rebounds_Tot'], $row['Ast'], $row['Stl'], $row['Blk'], $row['PPG']);
 
-            $player->printPlayer();
+            // $player->printPlayer();
 
-            echo "<br>";
+            echo "hi<br>";
           }
 
         } catch(PDOException $e) {
