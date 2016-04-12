@@ -18,6 +18,8 @@
     </header>
     <div id="players">
       <?php
+        include("player.php");
+
         $query = 'SELECT * FROM Players';
         if(isset($_GET['player'])) {
           $searchStr = $_GET['player'];
@@ -28,39 +30,19 @@
         }
 
         try {
-          $conn = new PDO('mysql:host=info344.cnk2klmgrohz.us-west-2.rds.amazonaws.com;port=3306;dbname=info344', 'info344user', 'info344userpassword');
+          $conn = new PDO('mysql:host=info344.cnk2klmgrohz.us-west-2.rds.amazonaws.com;port=3306;
+            dbname=info344', 'info344user', 'info344userpassword');
           $stmt = $conn->prepare($query);
           $stmt->execute();
 
           $result = $stmt->fetchAll();
 
           foreach($result as $row) {
-            echo "<h2>";
-            print_r($row['Name']);
-            echo "</h2>";
+            $player = new Player($row['Name'], $row['Team'], $row['GP'], $row['FG_M'], 
+              $row['FG_A'], $row['3PT_M'], $row['3PT_A'], $row['FT_M'], $row['FT_A'], 
+              $row['Rebounds_Tot'], $row['Ast'], $row['Stl'], $row['Blk'], $row['PPG']);
 
-            echo "<h3>";
-            print_r($row['Team']);
-            echo "</h3>";
-
-            echo "<p>";
-            echo "Games Played: ";
-            print_r($row['GP']);
-
-            echo "<br>Shots per game (made/attempts): ";
-            print_r($row['FG_M']);
-            echo "/";
-            print_r($row['FG_A']);
-
-            echo "<br>Threes per game (made/attempts): ";
-            print_r($row['3PT_M']);
-            echo "/";
-            print_r($row['3PT_A']);
-
-            echo "<br>Average points per game: ";
-            print_r($row['PPG']);
-
-            echo "</p>";
+            $player->printPlayer();
 
             echo "<br>";
           }
