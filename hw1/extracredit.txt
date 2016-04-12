@@ -1,3 +1,4 @@
-I'm actually not too sure if this counts as AJAX updating considering the way I implemented my site was heavily JavaScript. But when you search, the website will dynamically update when you search and not reload everything. The way it works is that when search is pressed, I look though the player cards I made to find a match with the input string. If I find a match, I have it show up on the page.
+I did some css and bootstrap stuff, but its not exactly pretty.
 
-I also did some css and bootstrap stuff, but its not exactly pretty.
+If you want to see some ajax, I actually made a version that is mostly javascript and updates the players.
+http://ec2-54-201-56-79.us-west-2.compute.amazonaws.com/nbaplayers.html

@@ -18,14 +18,14 @@
     </header>
     <div id="players">
       <?php
-        include("player.php");
+        include("nbaplayer.php");
 
         $query = 'SELECT * FROM Players';
         if(isset($_GET['player'])) {
           $searchStr = $_GET['player'];
           if($searchStr != "") {
             $query .= " WHERE Name LIKE '%$searchStr%'";
-            echo $query;
+            echo "Results for $searchStr";
           }
         }
 
@@ -38,13 +38,13 @@
           $result = $stmt->fetchAll();
 
           foreach($result as $row) {
-            // $player = new Player($row['Name'], $row['Team'], $row['GP'], $row['FG_M'], 
-            //   $row['FG_A'], $row['3PT_M'], $row['3PT_A'], $row['FT_M'], $row['FT_A'], 
-            //   $row['Rebounds_Tot'], $row['Ast'], $row['Stl'], $row['Blk'], $row['PPG']);
+            $player = new NbaPlayer($row['Name'], $row['Team'], $row['GP'], $row['FG_M'], 
+              $row['FG_A'], $row['3PT_M'], $row['3PT_A'], $row['FT_M'], $row['FT_A'], 
+              $row['Rebounds_Tot'], $row['Ast'], $row['Stl'], $row['Blk'], $row['PPG']);
 
-            // $player->printPlayer();
+            $player->printPlayer();
 
-            echo "hi<br>";
+            echo "<br>";
           }
 
         } catch(PDOException $e) {
