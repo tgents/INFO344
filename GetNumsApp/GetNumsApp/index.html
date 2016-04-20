@@ -1,0 +1,36 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+	<meta charset="utf-8" />
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+</head>
+<body>
+    Number: 
+    <input id="number" name="start">
+    <button onclick="onClick();">submit</button>
+    <p id="printhere">
+
+    </p>
+
+    <script>
+        function onClick() {
+            var num = $('#number').val();
+            $.ajax({
+                type: "POST",
+                url: "./GetNumsService.asmx/GetNumbersThatStartsWith",
+                data: JSON.stringify({start: num}),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (msg) {
+                    console.log(JSON.stringify(JSON.parse(msg.d)));
+                    $("#printhere").html(JSON.stringify(JSON.parse(msg.d)));
+                },
+                error: function (msg) {
+                    console.log("error")
+                }
+            });
+        }
+    </script>
+</body>
+</html>
