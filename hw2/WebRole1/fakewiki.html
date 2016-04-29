@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Fake Wikipedia</title>
+    <meta charset="utf-8" />
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+</head>
+<body style="margin: 0px auto; width:500px;">
+    <h1 style="text-align: center;">Fake Wikipedia Search</h1>
+    <input id="query" name="start" class="form-control" placeholder="Look for anything that starts before 'be'...">
+    <div id="printhere">
+
+    </div>
+
+    <script>
+        function onClick() {
+            var query = $('#query').val();
+            $.ajax({
+                type: "POST",
+                url: "TrieService.asmx/SearchTrie",
+                data: JSON.stringify({ searchString: query }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                cache: false,
+                success: function (msg) {
+                    //console.log(JSON.parse(msg.d));
+                    var resultlist = "<ul class=\"list-group\">";
+                    var resultsArr = JSON.parse(msg.d);
+                    $.each(resultsArr, function (index, element) {
+                        if (index < 10) {
+                            resultlist += "<li class=\"list-group-item\">";
+                            resultlist += element.split("_").join(" ");
+                            //console.log(element);
+                            resultlist += "</li>";
+                        }
+                    })
+                    resultlist += "</ul>";
+                    if (resultsArr == 0) {
+                        $("#printhere").html("");
+                    } else {
+                        $("#printhere").html(resultlist);
+                    }
+                },
+                error: function (msg) {
+                    console.log(msg);
+                    $("#printhere").html(msg.responseText);
+                }
+            });
+        }
+
+        $("#query").keyup(function (e) {
+            if ($('#query').val() == "") {
+                $("#printhere").html("");
+            } else {
+                onClick();
+            }
+        });
+    </script>
+</body>
+</html>
