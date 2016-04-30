@@ -1,6 +1,7 @@
 Links:
 Search box > http://inf344ttseng.cloudapp.net/fakewiki.html
 HTTP GET > http://inf344ttseng.cloudapp.net/TrieService.asmx/SearchTrie?searchString=abes
+GitHub > https://github.com/tgents/INFO344/tree/master/hw2
 
 Requirements:
 [50pts] Web service works – API returns query suggestions in JSON (fast!)

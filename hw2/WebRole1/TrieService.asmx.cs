@@ -40,11 +40,20 @@ namespace WebRole1
         }
 
         [WebMethod]
+        public void RemoveTrie()
+        {
+            triehard = null;
+        }
+
+        [WebMethod]
         public string BuildTrie()
         {
+            RemoveTrie();
             triehard = new Trie();
             string filepath = System.Web.HttpContext.Current.Server.MapPath(@"/wikititles.txt");
             StreamReader reader = new StreamReader(filepath);
+            float startMem = GetAvailableMBytes();
+            float memUsed = 0;
             int countLines = 0;
             string currentWord = "";
             while (!reader.EndOfStream)
@@ -52,6 +61,7 @@ namespace WebRole1
                 if (countLines % 1000 == 0)
                 {
                     float mem = GetAvailableMBytes();
+                    memUsed = startMem - mem;
                     if(mem < 50)
                     {
                         break;
@@ -61,11 +71,11 @@ namespace WebRole1
                 countLines++;
                 triehard.Add(currentWord);
             }
-            return currentWord + countLines;
+            return "Last insert: "+ currentWord + ", Lines: " + countLines + ", MemUsed: " + memUsed;
         }
 
         [WebMethod]
-        public void DownloadWiki()
+        public string DownloadWiki()
         {
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(ConfigurationManager.AppSettings["StorageConnectionString"]);
             CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
@@ -73,12 +83,19 @@ namespace WebRole1
             CloudBlockBlob blobby = container.GetBlockBlobReference("wikititles2.txt");
             string filepath = System.Web.HttpContext.Current.Server.MapPath(@"/wikititles.txt");
             blobby.DownloadToFile(filepath, System.IO.FileMode.Create);
+            return "success";
         }
 
         [WebMethod]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
         public string SearchTrie(string searchString)
         {
+            if(triehard == null)
+            {
+                DownloadWiki();
+                BuildTrie();
+                return new JavaScriptSerializer().Serialize("Service is rebooting...");
+            }
             return new JavaScriptSerializer().Serialize(triehard.Search(searchString));
         }
     }

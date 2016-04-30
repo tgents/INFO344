@@ -12,16 +12,28 @@ namespace ConsoleApplication3
     {
         static void Main(string[] args)
         {
-            Trie trie = new Trie();
-            trie = BuildTrie(trie);
-            List<string> hi = trie.Search("ba");
-            //StreamWriter writefile = new StreamWriter(System.IO.Path.GetFullPath("appwritestuff.txt"));
-            //writefile.WriteLine("SEARCH RETURNED--------------");
-            foreach (string word in hi)
+            Trie trie = BuildTrie();
+            while (true)
             {
-                Console.WriteLine(word);
+                Console.Write("Search: ");
+                string input = Console.ReadLine();
+                List<string> hi = trie.Search(input.ToLower());
+                if(hi == null)
+                {
+                    Console.Write("no words found :(");
+                }else
+                {
+                    foreach (string word in hi)
+                    {
+                        Console.Write(word + ",");
+                    }
+                }
+                Console.WriteLine();
             }
-            Console.Read();
+            
+            //StreamWriter writefile = new StreamWriter("C:/Users/tgents/Desktop/searchresults.txt");
+            //writefile.WriteLine("SEARCH RETURNED--------------");
+            //Console.Read();
         }
 
         private static PerformanceCounter memprocess = new PerformanceCounter("Memory", "Available MBytes");
@@ -32,32 +44,35 @@ namespace ConsoleApplication3
             return memUsage;
         }
 
-        public static Trie BuildTrie(Trie triehard)
+        public static Trie BuildTrie()
         {
-            triehard = new Trie();
-            string filepath = System.IO.Path.GetFullPath("wikititles.txt");
+            float startMem = GetAvailableMBytes();
+            Trie triehard = new Trie();
+            string filepath = "C:/Users/tgents/Desktop/wikititles.txt";
             StreamReader reader = new StreamReader(filepath);
             int countLines = 0;
             string currentWord = "";
+            float usedMem = 0;
             while (!reader.EndOfStream)
             {
-                if (countLines % 1000 == 0)
+                if(countLines % 1000 == 0)
                 {
-                    float mem = GetAvailableMBytes();
-                    if (mem < 50)
+                    usedMem = startMem - GetAvailableMBytes();
+                    if(usedMem > 1000)
                     {
                         break;
                     }
                 }
                 currentWord = reader.ReadLine();
-                if (currentWord.StartsWith("C"))
-                {
-                    break;
-                }
-                //Console.WriteLine(currentWord);
                 triehard.Add(currentWord.ToLower());
                 countLines++;
             }
+
+            Console.WriteLine("Trie complete...");
+            Console.WriteLine("Finished on: " + currentWord);
+            Console.WriteLine("Words added: " + countLines);
+            Console.WriteLine("Memory used " + usedMem);
+
             return triehard;
         }
     }

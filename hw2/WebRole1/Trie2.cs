@@ -1,38 +1,38 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Web;
 
-namespace ConsoleApplication3
+namespace WebRole1
 {
-    public class Trie
+    public class Trie2
     {
-        public Node rootNode;
-        public Trie()
+        public Trie2.Node rootNode;
+        public Trie2()
         {
-            rootNode = new Node();
+            rootNode = new Trie2.Node();
         }
 
         public void Add(string str)
         {
-            Node current = rootNode;
+            Trie2.Node current = rootNode;
             int index = 0;
             while (current.children != null && index < str.Length)
             {
                 int childIndex = GetNum(str.ElementAt(index));
                 if (current.children[childIndex] == null)
                 {
-                    current.children[childIndex] = new Node(str.ElementAt(index));
+                    current.children[childIndex] = new Trie2.Node(str.ElementAt(index));
                 }
                 current = current.children[childIndex];
                 index++;
             }
 
-            if(index == str.Length)
+            if (index == str.Length)
             {
                 current.isWord = true;
-            } else
+            }
+            else
             {
                 current.words.AddLast(str.Substring(index));
                 if (current.words.Count > 20)
@@ -44,11 +44,11 @@ namespace ConsoleApplication3
 
         public List<string> Search(string str)
         {
-            Node current = rootNode;
+            Trie2.Node current = rootNode;
             int pos = 0;
-            while(current.children != null && pos < str.Length)
+            while (current.children != null && pos < str.Length)
             {
-                if(current == null)
+                if (current == null)
                 {
                     return null;
                 }
@@ -60,7 +60,7 @@ namespace ConsoleApplication3
             List<string> matches = new List<string>();
             if (pos < str.Length)
             {
-                foreach(string word in current.words)
+                foreach (string word in current.words)
                 {
                     string wordup = str.Substring(0, pos) + word;
                     if (wordup.Contains(str))
@@ -76,9 +76,9 @@ namespace ConsoleApplication3
             return matches;
         }
 
-        private List<string> GetMoreWords(Node current, List<string> gimmeWords, string prefix)
+        private List<string> GetMoreWords(Trie2.Node current, List<string> gimmeWords, string prefix)
         {
-            if(gimmeWords.Count() > 100)
+            if (gimmeWords.Count() > 100)
             {
                 return gimmeWords;
             }
@@ -86,17 +86,18 @@ namespace ConsoleApplication3
             {
                 gimmeWords.Add(prefix + current.id);
             }
-            if(current.children == null)
+            if (current.children == null)
             {
-                foreach(string word in current.words)
+                foreach (string word in current.words)
                 {
                     gimmeWords.Add(prefix + word);
                 }
-            } else
+            }
+            else
             {
-                foreach(Node child in current.children)
+                foreach (Trie2.Node child in current.children)
                 {
-                    if(child != null)
+                    if (child != null)
                     {
                         gimmeWords = GetMoreWords(child, gimmeWords, prefix + current.id);
                     }
@@ -141,14 +142,15 @@ namespace ConsoleApplication3
                 {
                     char childId = word.ElementAt(0);
                     int index = GetNum(childId);
-                    if(children[index] == null)
+                    if (children[index] == null)
                     {
                         children[index] = new Node(childId);
                     }
-                    if(word.Length > 1)
+                    if (word.Length > 1)
                     {
                         children[index].words.AddLast(word.Substring(1));
-                    } else
+                    }
+                    else
                     {
                         children[index].isWord = true;
                     }

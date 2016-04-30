@@ -1,4 +1,6 @@
-DISCLAIMER: I did not actually do any extra credit since this week has been pretty packed (hence using 2 late days), but I thought about them pretty thoroughly.
+I really only made the Hybrid List Trie, but I did spend a lot of time thinking about how to do the others, so I wrote up how I would do them.
+
+I did not get the Hybrid List Trie working in the WebService, but I did include a console application that has it working. It was basically my Trie troubleshooter application. Unfortunately, I am approaching the deadline, so I don't want to break the working web service.
 
 [10pts] Popularity (page view) based query suggestion
   This just needs a field or two. It can store an integer for count, then the nodes would be sorted by count. This would only be for nodes that are the last letter of a word. By default this would be -1 for non word nodes. 
