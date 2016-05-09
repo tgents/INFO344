@@ -9,7 +9,7 @@
     <ProductVersion>
     </ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{88A5DC30-08A5-4549-8AA0-543C36A1E1BF}</ProjectGuid>
+    <ProjectGuid>{CAC3F220-0974-4C6A-9E5B-0FB2691D6418}</ProjectGuid>
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -100,7 +100,6 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="index.html" />
     <Content Include="packages.config" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
@@ -110,23 +109,22 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="QuizService.asmx" />
-    <Content Include="statsearch.asmx" />
+    <Content Include="admin.asmx" />
     <Content Include="Web.config" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NBAPlayerStats.cs" />
-    <Compile Include="Phrase.cs" />
+    <Compile Include="admin.asmx.cs">
+      <DependentUpon>admin.asmx</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="QuizService.asmx.cs">
-      <DependentUpon>QuizService.asmx</DependentUpon>
-      <SubType>Component</SubType>
-    </Compile>
-    <Compile Include="statsearch.asmx.cs">
-      <DependentUpon>statsearch.asmx</DependentUpon>
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="WebRole.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\BestLibrary\BestLibrary.csproj">
+      <Project>{DB0B1AFB-286E-4182-960A-5354AD71069C}</Project>
+      <Name>BestLibrary</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
@@ -141,9 +139,9 @@
         <WebProjectProperties>
           <UseIIS>True</UseIIS>
           <AutoAssignPort>True</AutoAssignPort>
-          <DevelopmentServerPort>22897</DevelopmentServerPort>
+          <DevelopmentServerPort>7662</DevelopmentServerPort>
           <DevelopmentServerVPath>/</DevelopmentServerVPath>
-          <IISUrl>http://localhost:22897/</IISUrl>
+          <IISUrl>http://localhost:7662/</IISUrl>
           <NTLMAuthentication>False</NTLMAuthentication>
           <UseCustomServer>False</UseCustomServer>
           <CustomServerUrl>

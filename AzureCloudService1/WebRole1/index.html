@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz 2</title>
+	<meta charset="utf-8" />
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+</head>
+<body>
+    <input id="query" name="start" class="form-control" placeholder="Type something...">
+    <button onclick="submit();">submit phrase</button>
+    <button onclick="getAll();">get all</button>
+    <div id="printhere">
+
+    </div>
+    <script>
+        function onClick() {
+            var query = $('#query').val();
+            $.ajax({
+                type: "POST",
+                url: "QuizService.asmx/ReverseWords",
+                data: JSON.stringify({ words: query }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                cache: false,
+                success: function (msg) {
+                    $("#printhere").html(msg.d);
+                },
+                error: function (msg) {
+                    console.log(msg);
+                    $("#printhere").html(msg.responseText);
+                }
+            });
+        }
+
+        function submit() {
+            var query = $('#query').val();
+            $.ajax({
+                type: "POST",
+                url: "QuizService.asmx/SubmitPhrase",
+                data: JSON.stringify({ phrase: query }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                cache: false,
+                success: function (msg) {
+                    $("#printhere").html(msg.d);
+                },
+                error: function (msg) {
+                    console.log(msg);
+                    $("#printhere").html(msg.responseText);
+                }
+            });
+        }
+
+        function getAll() {
+            var query = $('#query').val();
+            $.ajax({
+                type: "POST",
+                url: "QuizService.asmx/GetAllPhrases",
+                data: JSON.stringify({ phrase: query }),
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                cache: false,
+                success: function (msg) {
+                    //console.log(msg.d);
+                    var resultlist = "";
+                    $.each(msg.d, function (index, element) {
+                        resultlist += element;
+                        resultlist += "<br>";
+                    });
+                    $("#printhere").html(resultlist);
+                },
+                error: function (msg) {
+                    console.log(msg);
+                    $("#printhere").html(msg.responseText);
+                }
+            });
+        }
+
+        $("#query").keyup(function (e) {
+            if ($('#query').val() == "") {
+                $("#printhere").html("");
+            } else {
+                onClick();
+            }
+        });
+    </script>
+</body>
+</html>
