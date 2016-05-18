@@ -11,13 +11,12 @@ namespace RobotomLibrary
     {
         public StatEntity() { }
 
-        public string lastTen { get; set; }
-        public int memUsage { get; set; }
-        public int cpuUsage { get; set; }
+        public List<Uri> lastTen { get; set; }
+        public float memUsage { get; set; }
+        public float cpuUsage { get; set; }
         public int queuesize { get; set; }
         public int tablesize { get; set; }
         public int visitcount { get; set; }
         public int status { get; set; }
-        public int timer { get; set; }
     }
 }

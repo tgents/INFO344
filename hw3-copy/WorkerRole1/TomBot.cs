@@ -28,7 +28,6 @@ namespace WorkerRole1
         public int tableCount { get; set; }
 
         public Queue<Uri> lastTen { get; private set; }
-        public long timer { get; private set; }
 
         public TomBot(CloudQueue htmlqueue, CloudTable results, CloudTable errors, int resultscount)
         {
@@ -39,7 +38,6 @@ namespace WorkerRole1
             resultTable = results;
             errorTable = errors;
             htmlQ.CreateIfNotExists();
-            timer = 0;
 
             queueCount = 0;
             tableCount = resultscount;
@@ -48,32 +46,18 @@ namespace WorkerRole1
         //return 1 for success, 0 for fail
         public int ParseHtml(Uri uri)
         {
-
-
             if (isDisallowed(uri))
             {
                 return 0;
             }
 
-            long start = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-
             WebClient downloader = new WebClient();
             string sitedata = downloader.DownloadString(uri);
-
-            string hi = uri.AbsoluteUri;
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(sitedata);
 
-            long stop = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-            timer = stop - start;
-
             HtmlNodeCollection hrefs = doc.DocumentNode.SelectNodes("//a[@href]");
-
-            if(hrefs == null)
-            {
-                return 0;
-            }
 
             foreach (HtmlNode node in hrefs)
             {
@@ -81,12 +65,12 @@ namespace WorkerRole1
                 string url = href.Value;
                 if (url.StartsWith("/") && !url.StartsWith("//"))
                 {
-                    htmlQ.AddMessageAsync(new CloudQueueMessage("http://" + uri.Host + url));
+                    htmlQ.AddMessage(new CloudQueueMessage("http://" + uri.Host + url));
                     queueCount++;
                 }
                 else if (url.StartsWith("http://bleacherreport.com/articles"))
                 {
-                    htmlQ.AddMessageAsync(new CloudQueueMessage(url));
+                    htmlQ.AddMessage(new CloudQueueMessage(url));
                     queueCount++;
                 }
             }
@@ -111,33 +95,25 @@ namespace WorkerRole1
 
             UriEntity insert = new UriEntity(uri, title, converteddate);
 
-            try
+            if (title.Contains("Error"))
             {
-                if (title.Contains("Error"))
+                errorTable.Execute(TableOperation.InsertOrReplace(insert));
+            }
+            else
+            {
+                if (!visited.Contains(uri))
                 {
-                    errorTable.Execute(TableOperation.Insert(insert));
-                }
-                else
-                {
-                    if (!visited.Contains(uri))
-                    {
-                        resultTable.Execute(TableOperation.Insert(insert));
-                        tableCount++;
-
-                        lastTen.Enqueue(uri);
-                        if (lastTen.Count > 10)
-                        {
-                            lastTen.Dequeue();
-                        }
-                    }
+                    resultTable.Execute(TableOperation.InsertOrReplace(insert));
+                    tableCount++;
                 }
             }
-            catch (Exception e)
-            {
-
-            }
-
             visited.Add(uri);
+            lastTen.Enqueue(uri);
+
+            while(lastTen.Count > 10)
+            {
+                lastTen.Dequeue();
+            }
             queueCount--;
 
             return 1;
@@ -173,6 +149,7 @@ namespace WorkerRole1
                     disallow.Add(new Uri(root, url));
                 }
             }
+
             parseSiteMaps(sitemaps);
             return 1;
         }
@@ -185,6 +162,7 @@ namespace WorkerRole1
                 sitemaps.AddRange(parseXml(next));
                 sitemaps.Remove(next);
             }
+
         }
 
         private List<Uri> parseXml(Uri uri)

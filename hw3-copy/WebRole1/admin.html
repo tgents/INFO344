@@ -8,7 +8,7 @@
 </head>
 <body style="margin: 0px auto; width:600px;">
     <h1 style="text-align: center;">CNN Crawler Admin Panel</h1>
-    <button class="btn btn-default" type="button" onclick="timer();">Timer</button>
+
     <div class="input-group" style="padding-right: 15px;">
         <input id="search" type="text" class="form-control" placeholder="http://cnn.com">
         <span class="input-group-btn">
@@ -77,22 +77,6 @@
             $.ajax({
                 type: "POST",
                 url: "RoboTom.asmx/getStatus",
-                data: "",
-                contentType: "application/json; charset=utf-8",
-                dataType: "json",
-                success: function (msg) {
-                    console.log(msg)
-                    $("#printhere").val(msg.d + "\n" + $('#printhere').val())
-                },
-                error: function (msg) {
-                    console.log(msg)
-                }
-            });
-        }
-        function timer() {
-            $.ajax({
-                type: "POST",
-                url: "RoboTom.asmx/getTimer",
                 data: "",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
@@ -185,8 +169,8 @@
                 dataType: "json",
                 success: function (msg) {
                     var statsupdate = "<b>Stats:</b>";
-                    statsupdate += "<li class=\"list-group-item\">Memory Available: " + msg.d[0] + "MB</li>";
-                    statsupdate += "<li class=\"list-group-item\">CPU Usage: " + msg.d[1] + "%</li>";
+                    statsupdate += "<li class=\"list-group-item\">Memory Available: " + msg.d[0] + "</li>";
+                    statsupdate += "<li class=\"list-group-item\">CPU Usage: " + msg.d[1] + "</li>";
                     statsupdate += "<li class=\"list-group-item\">Queue Size: " + msg.d[2] + "</li>";
                     statsupdate += "<li class=\"list-group-item\">Table Size: " + msg.d[3] + "</li>";
                     statsupdate += "<li class=\"list-group-item\">Total Visited: " + msg.d[4] + "</li>";
@@ -205,12 +189,9 @@
                 success: function (msg) {
                     var statsupdate = "<li class=\"list-group-item\"><b>Last Visited</b></li>";
                     console.log(msg.d);
-                    $.each(msg.d.split(' '), function (index, element) {
+                    $.each(msg.d, function (index, element) {
                         console.log(element);
-                        if (element.trim() != "") {
-                            statsupdate += "<li class=\"list-group-item\">" + element + "</li>";
-                        }
-                        
+                        statsupdate += "<li class=\"list-group-item\">" + element + "</li>";
                     });
                     $("#insert").html(statsupdate);
                 },

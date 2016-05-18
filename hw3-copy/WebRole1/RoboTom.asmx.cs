@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
-using System.Text;
 using System.Web;
 using System.Web.Script.Services;
 using System.Web.Services;
@@ -78,7 +77,7 @@ namespace WebRole1
             }
             catch (Exception e)
             {
-                return "Tables already deleted...";
+                return "Tables already deleted..." + e.Message;
             }
 
             return "Crawl stopped, Clearing tables...";
@@ -102,7 +101,7 @@ namespace WebRole1
             }
             catch (Exception e)
             {
-                return "Please wait a least 1 minute before creating after deleting..." + e.Message;
+                return e.Message + "Please wait a least 1 minute before creating after deleting...";
             }
 
             return "Creating tables...";
@@ -118,62 +117,52 @@ namespace WebRole1
               ConfigurationManager.AppSettings["StorageConnectionString"]);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
             CloudTable statsTable = tableClient.GetTableReference("stattable");
-            try
-            {
-                TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
-                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "TomBot"));
-                List<StatEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
 
-                if (bean.Count != 0)
-                {
-                    StatEntity getem = bean.ElementAt(0);
-                    stats.Add(getem.memUsage);
-                    stats.Add(getem.cpuUsage);
-                    stats.Add(getem.queuesize);
-                    stats.Add(getem.tablesize);
-                    stats.Add(getem.visitcount);
-                }
-            } catch(Exception e)
+            TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
+                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "TomBot"));
+            List<StatEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
+
+            if (bean.Count != 0)
             {
-                stats.Add(-1);
-                stats.Add(-1);
-                stats.Add(-1);
-                stats.Add(-1);
-                stats.Add(-1);
-                return stats;
+                StatEntity getem = bean.ElementAt(0);
+                stats.Add(Convert.ToInt32(getem.memUsage));
+                stats.Add(Convert.ToInt32(getem.cpuUsage));
+                stats.Add(getem.queuesize);
+                stats.Add(getem.tablesize);
+                stats.Add(getem.visitcount);
             }
-            
 
             return stats;
         }
 
         [WebMethod]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-        public string getLastTen()
+        public List<string> getLastTen()
         {
+            List<string> uris = new List<string>();
+
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
               ConfigurationManager.AppSettings["StorageConnectionString"]);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
             CloudTable statsTable = tableClient.GetTableReference("stattable");
 
-            try
-            {
-                TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
+            TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
                 .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "TomBot"));
-                List<StatEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
+            List<StatEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
 
-                if (bean.Count != 0)
+            if (bean.Count != 0)
+            {
+                StatEntity getem = bean.ElementAt(0);
+                if (getem.lastTen != null)
                 {
-                    StatEntity getem = bean.ElementAt(0);
-                    return getem.lastTen;
+                    foreach (Uri uri in getem.lastTen)
+                    {
+                        uris.Add(uri.AbsoluteUri);
+                    }
                 }
             }
-            catch(Exception e)
-            {
-                return "Please wait a least 1 minute before creating after deleting..." + e.Message;
-            }
 
-            return "";
+            return uris;
         }
 
         [WebMethod]
@@ -185,37 +174,30 @@ namespace WebRole1
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
             CloudTable statsTable = tableClient.GetTableReference("stattable");
 
-            try
-            {
-                TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
+            TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
                 .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "TomBot"));
-                List<StatEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
+            List<StatEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
 
-                if (bean.Count != 0)
-                {
-                    StatEntity getem = bean.ElementAt(0);
-                    if (getem.status == Robotom.STATUS_STOP)
-                    {
-                        return "TomBot is stopped...";
-                    }
-                    else if (getem.status == Robotom.STATUS_IDLE)
-                    {
-                        return "TomBot is idle...";
-                    }
-                    else if (getem.status == Robotom.STATUS_LOADING)
-                    {
-                        return "TomBot is loading...";
-                    }
-                    else if (getem.status == Robotom.STATUS_CRAWLING)
-                    {
-                        return "TomBot is crawling...";
-                    }
-                }
-            } catch (Exception e)
+            if (bean.Count != 0)
             {
-                return "Please wait a least 1 minute before creating after deleting..." + e.Message;
+                StatEntity getem = bean.ElementAt(0);
+                if (getem.status == Robotom.STATUS_STOP)
+                {
+                    return "TomBot is stopped...";
+                }
+                else if (getem.status == Robotom.STATUS_IDLE)
+                {
+                    return "TomBot is idle...";
+                }
+                else if (getem.status == Robotom.STATUS_LOADING)
+                {
+                    return "TomBot is loading...";
+                }
+                else if (getem.status == Robotom.STATUS_CRAWLING)
+                {
+                    return "TomBot is crawling...";
+                }
             }
-            
 
             return "Could not retrieve status...";
         }
@@ -230,25 +212,18 @@ namespace WebRole1
               ConfigurationManager.AppSettings["StorageConnectionString"]);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
             CloudTable errorTable = tableClient.GetTableReference("errortable");
-            try
-            {
-                TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
-                                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "TomBot"));
-                List<UriEntity> bean = errorTable.ExecuteQuery(new TableQuery<UriEntity>()).ToList();
 
-                if (bean.Count != 0)
-                {
-                    foreach (UriEntity getem in bean)
-                    {
-                        uris.Add(getem.Site);
-                    }
-                }
-            } catch (Exception e)
+            TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
+                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "TomBot"));
+            List<UriEntity> bean = errorTable.ExecuteQuery(new TableQuery<UriEntity>()).ToList();
+
+            if (bean.Count != 0)
             {
-                uris.Add(e.Message);
-                return uris;
+                foreach (UriEntity getem in bean)
+                {
+                    uris.Add(getem.Site.AbsoluteUri);
+                }
             }
-            
 
             return uris;
         }
@@ -271,49 +246,20 @@ namespace WebRole1
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
             CloudTable statsTable = tableClient.GetTableReference("crawltable");
 
-            try
-            {
-                TableQuery<UriEntity> counterquery = new TableQuery<UriEntity>()
-                                .Where(TableQuery.CombineFilters(
-                                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, uri.Host),
-                                    TableOperators.And,
-                                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, uri.AbsolutePath.GetHashCode().ToString())));
+            TableQuery<UriEntity> counterquery = new TableQuery<UriEntity>()
+                .Where(TableQuery.CombineFilters(
+                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, uri.Host),
+                    TableOperators.And,
+                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, uri.AbsolutePath.GetHashCode().ToString())));
 
-                List<UriEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
-
-                if (bean.Count != 0)
-                {
-                    return bean.ElementAt(0).Title;
-                }
-            } catch (Exception e)
-            {
-                return "Please wait a least 1 minute before creating after deleting..." + e.Message;
-            }
-            
-
-            return "Could not find URL...";
-        }
-
-        [WebMethod]
-        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
-        public string getTimer()
-        {
-            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
-              ConfigurationManager.AppSettings["StorageConnectionString"]);
-            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
-            CloudTable statsTable = tableClient.GetTableReference("stattable");
-
-            TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
-                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "TomBot"));
-            List<StatEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
+            List<UriEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
 
             if (bean.Count != 0)
             {
-                StatEntity getem = bean.ElementAt(0);
-                return "Html loading took " + getem.timer + " ms";
+                return bean.ElementAt(0).Title;
             }
 
-            return "Could not retrieve status...";
+            return "Could not find URL...";
         }
     }
 }

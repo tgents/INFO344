@@ -1,0 +1,38 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="https://code.jquery.com/jquery-1.12.3.min.js"></script>
+    <script>
+        function func() {
+            var num = $("#number").val();
+            $.ajax({
+                url: "http://info344thomastseng.azurewebsites.net/jsonpservice.asmx/getOneLessThanN",
+                data: {'n':num},
+                contentType: "application/json; charset=utf-8",
+                dataType: "jsonp",
+                success: function (msg) {
+                    $("#results").html(JSON.stringify(msg));
+                },
+                error: function (msg) {
+                    alert('error');
+                    alert(JSON.stringify(msg));
+                }
+            });
+        }
+
+        function updateResults(data) {
+            //alert('jsonp success');
+            $('#results2').html(JSON.stringify(data));
+        }
+    </script>
+</head>
+<body>
+    <input type="text" id="number" />
+    <input type="submit" onclick="func()" />
+    <div id="results"></div>
+
+    <div id='results2'></div>
+    <script src="http://info344thomastseng.azurewebsites.net/jsonpservice.asmx/getOneLessThanN?callback=updateResults&n=14"></script>
+</body>
+</html>

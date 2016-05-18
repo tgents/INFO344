@@ -15,15 +15,15 @@ namespace RobotomLibrary
             this.PartitionKey = uri.Host;
             this.RowKey = uri.AbsolutePath.GetHashCode().ToString();
 
-            this.Site = uri.AbsoluteUri;
-            this.Date = date.ToString();
+            this.Site = uri;
+            this.Date = date;
             this.Title = title;
         }
 
         public UriEntity() { }
 
-        public string Site { get; private set; }
-        public string Date { get; private set; }
+        public Uri Site { get; private set; }
+        public DateTime Date { get; private set; }
         public string Title { get; set; }
         public int count { get; set; }
     }

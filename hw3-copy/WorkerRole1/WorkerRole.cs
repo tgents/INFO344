@@ -48,10 +48,8 @@ namespace WorkerRole1
             errorTable.CreateIfNotExists();
             statTable.CreateIfNotExists();
 
-            this.memprocess = new PerformanceCounter("Memory", "Available MBytes");
-            this.cpuprocess = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-            memprocess.NextValue();
-            cpuprocess.NextValue();
+            memprocess = new PerformanceCounter("Memory", "Available MBytes");
+            cpuprocess = new PerformanceCounter("Processor", "% Processor Time", "_Total");
 
             int tablesize = 0;
             TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
@@ -121,18 +119,12 @@ namespace WorkerRole1
 
         private void updateStats(StatEntity stats, CloudTable statTable)
         {
-            stats.memUsage = unchecked((int) memprocess.NextValue());
-            stats.cpuUsage = unchecked((int) cpuprocess.NextValue());
+            stats.memUsage = memprocess.NextValue();
+            stats.cpuUsage = cpuprocess.NextValue();
             stats.queuesize = crawler.queueCount;
             stats.tablesize = crawler.tableCount;
             stats.visitcount = crawler.visited.Count();
-            System.Text.StringBuilder last = new System.Text.StringBuilder("");
-            foreach (Uri u in crawler.lastTen)
-            {
-                last.Append(u.AbsoluteUri + " ");
-            }
-            stats.lastTen = last.ToString();
-            stats.timer = unchecked((int)crawler.timer);
+            stats.lastTen = crawler.lastTen.ToList();
             stats.status = status;
             try
             {
