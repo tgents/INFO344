@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Weather</title>
+    <meta charset="utf-8" />
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+</head>
+<body style="margin: 0px auto; width:500px;">
+    <h1 style="text-align: center;">Rainy Days</h1>
+    <div class="input-group">
+        <input id="query" type="text" class="form-control" placeholder="Gimme city">
+        <span class="input-group-btn">
+          <button class="btn btn-default" type="button" onclick="onClick();">Search</button>
+        </span>
+      </div>
+    <div id="printhere">
+
+    </div>
+
+    <script>
+        function onClick() {
+            var query = $('#query').val();
+            $.ajax({
+                type: "GET",
+                url: "http://api.openweathermap.org/data/2.5/forecast/daily?q="+query+"&appid=a8c83626f08d6f943a4a0aab3c8822f7",
+                data: JSON.stringify({ searchString: query }),
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                dataType: "json",
+                success: function (msg) {
+                	var count = 0;
+                	$.each(msg.list, function (index, element){
+                		if(element.weather[0].main == "Rain"){
+                			count++;
+                		}
+                	})
+                	console.log(msg.city.name);
+                    $("#printhere").html(msg.city.name +", " +msg.city.country +" will have "+ count+" days of rain.");
+                },
+                error: function (msg) {
+                    console.log(msg);
+                    $("#printhere").html(msg.responseText);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
