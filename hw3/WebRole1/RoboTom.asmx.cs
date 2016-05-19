@@ -78,7 +78,7 @@ namespace WebRole1
             }
             catch (Exception e)
             {
-                return "Tables already deleted...";
+                return "Tables already deleted: " + e.Message;
             }
 
             return "Crawl stopped, Clearing tables...";
@@ -102,7 +102,7 @@ namespace WebRole1
             }
             catch (Exception e)
             {
-                return "Please wait a least 1 minute before creating after deleting..." + e.Message;
+                return "Please wait before recreating tables: " + e.Message;
             }
 
             return "Creating tables...";
@@ -170,7 +170,7 @@ namespace WebRole1
             }
             catch(Exception e)
             {
-                return "Please wait a least 1 minute before creating after deleting..." + e.Message;
+                return "Could not access stats: " + e.Message;
             }
 
             return "";
@@ -213,7 +213,7 @@ namespace WebRole1
                 }
             } catch (Exception e)
             {
-                return "Please wait a least 1 minute before creating after deleting..." + e.Message;
+                return "Could not access stats: " + e.Message;
             }
             
 
@@ -245,11 +245,14 @@ namespace WebRole1
                 }
             } catch (Exception e)
             {
-                uris.Add(e.Message);
+                uris.Add("Could not access errors: " + e.Message);
                 return uris;
             }
             
-
+            if(uris.Count == 0)
+            {
+                uris.Add("No errors so far :)");
+            }
             return uris;
         }
 
@@ -287,7 +290,7 @@ namespace WebRole1
                 }
             } catch (Exception e)
             {
-                return "Please wait a least 1 minute before creating after deleting..." + e.Message;
+                return "Could not access table: " + e.Message;
             }
             
 
@@ -302,18 +305,23 @@ namespace WebRole1
               ConfigurationManager.AppSettings["StorageConnectionString"]);
             CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
             CloudTable statsTable = tableClient.GetTableReference("stattable");
-
-            TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
-                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "TomBot"));
-            List<StatEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
-
-            if (bean.Count != 0)
+            try
             {
-                StatEntity getem = bean.ElementAt(0);
-                return "Html loading took " + getem.timer + " ms";
-            }
+                TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
+                                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "TomBot"));
+                List<StatEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
 
-            return "Could not retrieve status...";
+                if (bean.Count != 0)
+                {
+                    StatEntity getem = bean.ElementAt(0);
+                    return "Finding links took " + getem.timer + " ms...";
+                }
+            }
+            catch(Exception e)
+            {
+                return "Could not access stats: " + e.Message;
+            }
+            return "Could not retrieve timer...";
         }
     }
 }

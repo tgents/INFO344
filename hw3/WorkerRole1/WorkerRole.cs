@@ -136,7 +136,7 @@ namespace WorkerRole1
             stats.status = status;
             try
             {
-                statTable.Execute(TableOperation.InsertOrReplace(stats));
+                statTable.ExecuteAsync(TableOperation.InsertOrReplace(stats));
             }
             catch (Exception e)
             {

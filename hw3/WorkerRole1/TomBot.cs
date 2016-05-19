@@ -56,17 +56,24 @@ namespace WorkerRole1
             }
 
             long start = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-
-            WebClient downloader = new WebClient();
-            string sitedata = downloader.DownloadString(uri);
-
+            string sitedata = "";
+            try
+            {
+                WebClient downloader = new WebClient();
+                sitedata = downloader.DownloadString(uri);
+            }catch(Exception e)
+            {
+                UriEntity error = new UriEntity(uri, e.Message, DateTime.Now);
+                errorTable.ExecuteAsync(TableOperation.Insert(error));
+                visited.Add(uri);
+                queueCount--;
+                return 0;
+            }
+            
             string hi = uri.AbsoluteUri;
 
             HtmlDocument doc = new HtmlDocument();
             doc.LoadHtml(sitedata);
-
-            long stop = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-            timer = stop - start;
 
             HtmlNodeCollection hrefs = doc.DocumentNode.SelectNodes("//a[@href]");
 
@@ -90,6 +97,9 @@ namespace WorkerRole1
                     queueCount++;
                 }
             }
+
+            long stop = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
+            timer = stop - start;
 
             //get title
             HtmlNode titleNode = doc.DocumentNode.SelectSingleNode("//title");
@@ -115,13 +125,13 @@ namespace WorkerRole1
             {
                 if (title.Contains("Error"))
                 {
-                    errorTable.Execute(TableOperation.Insert(insert));
+                    errorTable.ExecuteAsync(TableOperation.Insert(insert));
                 }
                 else
                 {
                     if (!visited.Contains(uri))
                     {
-                        resultTable.Execute(TableOperation.Insert(insert));
+                        resultTable.ExecuteAsync(TableOperation.Insert(insert));
                         tableCount++;
 
                         lastTen.Enqueue(uri);
@@ -199,7 +209,7 @@ namespace WorkerRole1
                 foreach (XmlNode sitemap in xmldoc.LastChild.ChildNodes)
                 {
                     string url = "";
-                    string date = "";
+                    string date = DateTime.Now.ToString();
                     foreach (XmlNode info in sitemap.ChildNodes)
                     {
                         if (info.Name.Equals("loc"))
@@ -220,7 +230,7 @@ namespace WorkerRole1
                         }
                         else
                         {
-                            htmlQ.AddMessage(new CloudQueueMessage(url));
+                            htmlQ.AddMessageAsync(new CloudQueueMessage(url));
                             queueCount++;
                         }
                     }
