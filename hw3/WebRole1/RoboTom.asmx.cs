@@ -23,6 +23,7 @@ namespace WebRole1
     [System.Web.Script.Services.ScriptService]
     public class RoboTom : System.Web.Services.WebService
     {
+        public static Dictionary<string, Tuple<List<string>, DateTime>> searchcache;
 
         [WebMethod]
         [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
@@ -133,7 +134,8 @@ namespace WebRole1
                     stats.Add(getem.tablesize);
                     stats.Add(getem.visitcount);
                 }
-            } catch(Exception e)
+            }
+            catch (Exception e)
             {
                 stats.Add(-1);
                 stats.Add(-1);
@@ -142,7 +144,7 @@ namespace WebRole1
                 stats.Add(-1);
                 return stats;
             }
-            
+
 
             return stats;
         }
@@ -168,7 +170,7 @@ namespace WebRole1
                     return getem.lastTen;
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return "Could not access stats: " + e.Message;
             }
@@ -211,11 +213,12 @@ namespace WebRole1
                         return "TomBot is crawling...";
                     }
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return "Could not access stats: " + e.Message;
             }
-            
+
 
             return "Could not retrieve status...";
         }
@@ -240,16 +243,20 @@ namespace WebRole1
                 {
                     foreach (UriEntity getem in bean)
                     {
-                        uris.Add(getem.Site);
+                        if (uris.Count < 300)
+                        {
+                            uris.Add(getem.Site);
+                        }
                     }
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 uris.Add("Could not access errors: " + e.Message);
                 return uris;
             }
-            
-            if(uris.Count == 0)
+
+            if (uris.Count == 0)
             {
                 uris.Add("No errors so far :)");
             }
@@ -267,7 +274,7 @@ namespace WebRole1
             }
             catch (Exception e)
             {
-                return "Please enter a valid URL...";
+                return e.Message;
             }
             CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
               ConfigurationManager.AppSettings["StorageConnectionString"]);
@@ -288,13 +295,83 @@ namespace WebRole1
                 {
                     return bean.ElementAt(0).Title;
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return "Could not access table: " + e.Message;
             }
-            
+
 
             return "Could not find URL...";
+        }
+
+        [WebMethod]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public List<string> getUrl(string title)
+        {
+            title = Robotom.CleanWord(title);
+
+            if (searchcache == null || searchcache.Count > 100)
+            {
+                searchcache = new Dictionary<string, Tuple<List<string>, DateTime>>();
+            }
+
+            if (searchcache.ContainsKey(title))
+            {
+                if(searchcache[title].Item2.AddMinutes(30) > DateTime.Now)
+                {
+                    return searchcache[title].Item1;
+                }
+                else
+                {
+                    searchcache.Remove(title);
+                }
+            }
+
+            List<string> returnthis = new List<string>();
+
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
+              ConfigurationManager.AppSettings["StorageConnectionString"]);
+            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+            CloudTable statsTable = tableClient.GetTableReference("crawltable");
+
+            try
+            {
+                var results = new Dictionary<string, int>();
+                foreach (string word in title.Split(' '))
+                {
+                    TableQuery<UriEntity> query = new TableQuery<UriEntity>()
+                                .Where(
+                                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, word));
+                    var stuffs = statsTable.ExecuteQuery(query);
+                    foreach (UriEntity stuff in stuffs)
+                    {
+                        string key = stuff.Title + " " + stuff.Site;
+                        if (results.ContainsKey(key))
+                        {
+                            results[key]++;
+                        }
+                        else
+                        {
+                            results.Add(key, 1);
+                        }
+                    }
+                }
+                returnthis = results.OrderByDescending(x => x.Value).Select(x => x.Key).Take(20).ToList();
+            }
+            catch (Exception e)
+            {
+                returnthis.Add("Could not access table: " + e.Message);
+            }
+
+            if (returnthis.Count == 0)
+            {
+                returnthis.Add("Could not find any results...");
+            }
+            
+            searchcache.Add(title, new Tuple<List<string>, DateTime>(returnthis, DateTime.Now));
+
+            return returnthis;
         }
 
         [WebMethod]
@@ -317,11 +394,41 @@ namespace WebRole1
                     return "Finding links took " + getem.timer + " ms...";
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return "Could not access stats: " + e.Message;
             }
             return "Could not retrieve timer...";
+        }
+
+        [WebMethod]
+        [ScriptMethod(ResponseFormat = ResponseFormat.Json)]
+        public string getTrienhardt()
+        {
+            string stats = "Trienhardt is not here...";
+
+            CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
+              ConfigurationManager.AppSettings["StorageConnectionString"]);
+            CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+            CloudTable statsTable = tableClient.GetTableReference("stattable");
+            try
+            {
+                TableQuery<StatEntity> counterquery = new TableQuery<StatEntity>()
+                .Where(TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, "Trienhardt"));
+                List<StatEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
+
+                if (bean.Count != 0)
+                {
+                    StatEntity getem = bean.ElementAt(0);
+                    stats = "Last Word Added: '" + getem.lastTen + "', Lines: " + getem.visitcount; 
+                }
+            }
+            catch (Exception e)
+            {
+                return "Could not retrieve stats: " + e.Message;
+            }
+
+            return stats;
         }
     }
 }

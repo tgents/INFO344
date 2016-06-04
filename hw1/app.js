@@ -1,11 +1,13 @@
 var playerNodes = [];
 var request = new XMLHttpRequest();
-request.open('GET', 'http://ec2-54-201-56-79.us-west-2.compute.amazonaws.com/givemethestuff.php', true);
+request.open('GET', './givemethestuff.php', true);
 
 request.onload = function() {
   if (request.status >= 200 && request.status < 400) {
     // Success!
-    var data = JSON.parse(request.responseText);
+    var text = request.responseText;
+    console.log(text);
+    var data = JSON.parse(text);
     var plays = [];
     for(var i = 0; i < data.length; i++) {
       // console.log(data[i]['Name']);

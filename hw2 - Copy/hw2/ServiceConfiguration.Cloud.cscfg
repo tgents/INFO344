@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ServiceConfiguration serviceName="hw2" xmlns="http://schemas.microsoft.com/ServiceHosting/2008/10/ServiceConfiguration" osFamily="4" osVersion="*" schemaVersion="2015-04.2.6">
+  <Role name="WebRole1">
+    <Instances count="1" />
+    <ConfigurationSettings>
+      <Setting name="Microsoft.WindowsAzure.Plugins.Diagnostics.ConnectionString" value="DefaultEndpointsProtocol=https;AccountName=info344thomastseng;AccountKey=AZNpODFOUk2ANETTctuxxnc8kdcbHZ6WjuaVGIBHasYZX1E0y/K8QlU7qP6AMHDVTWeGE20j34KKHm9wHrcvwQ==" />
+      <Setting name="APPINSIGHTS_INSTRUMENTATIONKEY" value="2a1c862e-f247-4ccb-8fcd-20d647b8ad2f" />
+    </ConfigurationSettings>
+  </Role>
+</ServiceConfiguration>

@@ -10,9 +10,9 @@ namespace RobotomLibrary
 {
     public class UriEntity : TableEntity
     {
-        public UriEntity(Uri uri, string title, DateTime date, string key)
+        public UriEntity(Uri uri, string title, DateTime date)
         {
-            this.PartitionKey = key;
+            this.PartitionKey = uri.Host;
             this.RowKey = uri.AbsolutePath.GetHashCode().ToString();
 
             this.Site = uri.AbsoluteUri;
@@ -22,8 +22,9 @@ namespace RobotomLibrary
 
         public UriEntity() { }
 
-        public string Site { get; set; }
-        public string Date { get; set; }
+        public string Site { get; private set; }
+        public string Date { get; private set; }
         public string Title { get; set; }
+        public int count { get; set; }
     }
 }

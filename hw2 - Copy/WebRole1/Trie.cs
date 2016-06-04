@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ConsoleApplication3
+namespace WebRole1
 {
     public class Trie
     {
@@ -34,11 +34,7 @@ namespace ConsoleApplication3
                 current.isWord = true;
             } else
             {
-                string word = str.Substring(index);
-                if (!word.Equals(""))
-                {
-                    current.words.Add(word);
-                }
+                current.words.Add(str.Substring(index));
                 if (current.words.Count > 50)
                 {
                     current.changeToNodes();
@@ -50,23 +46,25 @@ namespace ConsoleApplication3
         {
             Node current = rootNode;
             int pos = 0;
+            StringBuilder rebuild = new StringBuilder();
             while(current.children != null && pos < str.Length)
             {
-                if(current == null)
-                {
-                    return null;
-                }
                 char currentChar = str.ElementAt(pos);
                 int index = GetNum(currentChar);
                 current = current.children[index];
                 pos++;
+                rebuild.Append(currentChar);
+                if (current == null)
+                {
+                    return null;
+                }
             }
             List<string> matches = new List<string>();
             if (pos < str.Length)
             {
                 foreach(string word in current.words)
                 {
-                    string wordup = str.Substring(0, pos) + word;
+                    string wordup = rebuild.Append(word).ToString();
                     if (wordup.Contains(str))
                     {
                         matches.Add(wordup);

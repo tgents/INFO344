@@ -1,0 +1,29 @@
+<html>
+<head>
+    <title></title>
+    <script src="https://code.jquery.com/jquery-1.12.3.min.js"></script>
+</head>
+<body>
+    <input type="text" id="player" />
+    <input type="submit" onclick="func()" />
+    <div id="results"></div>
+</body>
+<script type="text/javascript">
+    function func() {
+        var name = $("#player").val();
+        $.ajax({
+            url: "http://students.washington.edu/tgents/info344test/findplayer.php",
+            data: {'player':name},
+            contentType: "application/json; charset=utf-8",
+            dataType: "jsonp",
+            success: function (msg) {
+                $("#results").html(JSON.stringify(msg));
+            },
+            error: function (msg) {
+                alert('error');
+                alert(JSON.stringify(msg));
+            }
+        });
+        }
+</script>
+</html>

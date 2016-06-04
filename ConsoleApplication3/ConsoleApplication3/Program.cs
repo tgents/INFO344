@@ -48,7 +48,7 @@ namespace ConsoleApplication3
         {
             float startMem = GetAvailableMBytes();
             Trie triehard = new Trie();
-            string filepath = "C:/Users/tgents/Desktop/wikititles.txt";
+            string filepath = "C:/Users/tgents/Dropbox/School/batman.txt";
             StreamReader reader = new StreamReader(filepath);
             int countLines = 0;
             string currentWord = "";

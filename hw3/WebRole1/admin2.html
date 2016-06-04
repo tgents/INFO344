@@ -26,13 +26,7 @@
 </head>
 <body style="margin: 0px auto; width:800px;">
     <h1 style="text-align: center;">CNN Crawler Admin Panel</h1>
-    <div class="input-group" style="padding-right: 15px;">
-        <input id="search" type="text" class="form-control" placeholder="http://cnn.com">
-        <span class="input-group-btn">
-            <button class="btn btn-default" type="button" onclick="search();">Search</button>
-        </span>
-    </div>
-    <br>
+
     <div class="row" style="padding-right: 15px; padding-left: 15px">
         <ul id="stats" class="list-group col-md-4">
             <b>Stats:</b>
@@ -44,25 +38,29 @@
         </ul>
         <div class="form-group col-md-8">
             <b>Console:</b>
-            <textarea id="printhere" class="form-control" rows="9" style="resize: none;" readonly></textarea>
+            <textarea id="printhere" class="form-control" rows="9" style="resize: none; height: 100%;" readonly></textarea>
         </div>
     </div>
-
+    <br>
     <div class="input-group row" id="actions">
         <span class="input-group-btn">
-            <button class="btn btn-default" type="button" onclick="timer();">Timer</button>
-            <button class="btn btn-default" type="button" onclick="refreshUrls();">Refresh Urls</button>
-            <button class="btn btn-default" type="button" onclick="status();">Check Status</button>
-            <button class="btn btn-default" type="button" onclick="clearTables();">Clear Tables</button>
-            <button class="btn btn-default" type="button" onclick="createTables();">Create Tables</button>
-            <button class="btn btn-default" type="button" onclick="stop();">Stop Crawl</button>
+            <button class="btn btn-primary" type="button" onclick="buildTrie();">Build Trie</button>
+            <button class="btn btn-primary" type="button" onclick="downloadWiki();">Download Wiki</button>
+            <button class="btn btn-danger" type="button" onclick="deleteTrie();">Delete Trie</button>     
+            <button class="btn btn-info" type="button" onclick="checkWiki();">Check Wiki</button>
+            <button class="btn btn-info" type="button" onclick="checkTrie();">Check Trie</button>       
+            <button class="btn btn-info" type="button" onclick="refreshUrls();">Refresh Urls</button>
+            <button class="btn btn-info" type="button" onclick="status();">Crawler Status</button>
         </span>
     </div>
     <br>
     <div class="input-group" style="padding-right: 15px;">
-        <input id="sitecrawl" type="text" class="form-control" placeholder="http://cnn.com">
+        <input id="sitecrawl" type="text" class="form-control" placeholder="http://cnn.com" value="http://cnn.com">
         <span class="input-group-btn">
-            <button class="btn btn-default" type="button" onclick="start();">Start Crawl</button>
+            <button class="btn btn-success" type="button" onclick="start();">Start Crawl</button>
+            <button class="btn btn-default" type="button" onclick="createTables();">Create Tables</button>
+            <button class="btn btn-warning" type="button" onclick="clearTables();">Clear Tables</button>
+            <button class="btn btn-danger" type="button" onclick="stop();">Stop Crawl</button>
         </span>
     </div>
     <br>
@@ -76,11 +74,10 @@
             <div id="memgraph"></div>
         </div>
     </div>
-
     <b>Last Visited:</b>
-    <ul id="insert" class="list-group" style="height:200px;overflow:hidden; overflow-y:auto;"></ul>
+    <ul id="insert" class="list-group" style="max-height:200px;overflow:hidden; overflow-y:auto;"></ul>
     <b>Errors:</b>
-    <ul id="errors" class="list-group" style="height:200px;overflow:hidden; overflow-y:auto;"></ul>
+    <ul id="errors" class="list-group" style="max-height:200px;overflow:hidden; overflow-y:auto;"></ul>
 
     <script>
         var memdata = [];
@@ -91,21 +88,104 @@
             cpudata.push(0);
         }
 
-
-        function search() {
-            var query = $('#search').val();
+        function deleteTrie() {
+            $("#printhere").val("Deleting Trie..." + "\n" + $('#printhere').val())
             $.ajax({
                 type: "POST",
-                url: "RoboTom.asmx/getTitle",
-                data: JSON.stringify({ url: query }),
+                url: "TrieService.asmx/RemoveTrie",
+                data: "",
                 contentType: "application/json; charset=utf-8",
                 dataType: "json",
                 success: function (msg) {
-                    console.log(msg)
+                    console.log(msg);
                     $("#printhere").val(msg.d + "\n" + $('#printhere').val())
                 },
                 error: function (msg) {
-                    console.log(msg)
+                    console.log(msg);
+                }
+            });
+        }
+
+        function checkWiki() {
+            $.ajax({
+                type: "POST",
+                url: "TrieService.asmx/CheckWiki",
+                data: "",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (msg) {
+                    console.log(msg);
+                    $("#printhere").val(msg.d + "\n" + $('#printhere').val())
+                },
+                error: function (msg) {
+                    console.log(msg);
+                }
+            });
+        }
+
+        function checkTrie() {
+            $.ajax({
+                type: "POST",
+                url: "TrieService.asmx/CheckTrie",
+                data: "",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (msg) {
+                    console.log(msg);
+                    $("#printhere").val(msg.d + "\n" + $('#printhere').val())
+                },
+                error: function (msg) {
+                    console.log(msg);
+                }
+            });
+            $.ajax({
+                type: "POST",
+                url: "RoboTom.asmx/getTrienhardt",
+                data: "",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (msg) {
+                    console.log(msg);
+                    $("#printhere").val(msg.d + "\n" + $('#printhere').val())
+                },
+                error: function (msg) {
+                    console.log(msg);
+                }
+            });
+        }
+
+        function downloadWiki() {
+            $("#printhere").val("Downloading Wiki..." + "\n" + $('#printhere').val())
+            $.ajax({
+                type: "POST",
+                url: "TrieService.asmx/DownloadWiki",
+                data: "",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (msg) {
+                    console.log(msg);
+                    $("#printhere").val(msg.d + "\n" + $('#printhere').val())
+                },
+                error: function (msg) {
+                    console.log(msg);
+                }
+            });
+        }
+
+        function buildTrie() {
+            $("#printhere").val("Building Trie..." + "\n" + $('#printhere').val())
+            $.ajax({
+                type: "POST",
+                url: "TrieService.asmx/BuildTrie",
+                data: "",
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: function (msg) {
+                    console.log(msg);
+                    $("#printhere").val(msg.d + "\n" + $('#printhere').val())
+                },
+                error: function (msg) {
+                    console.log(msg);
                 }
             });
         }
@@ -247,8 +327,7 @@
                 dataType: "json",
                 success: function (msg) {
                     var statsupdate = "";
-                    console.log(msg.d);
-                    $.each(msg.d.split(' '), function (index, element) {
+                    $.each(msg.d.split(';'), function (index, element) {
                         console.log(element);
                         if (element.trim() != "") {
                             statsupdate += "<li class=\"list-group-item\">" + element + "</li>";
@@ -269,6 +348,7 @@
                 dataType: "json",
                 success: function (msg) {
                     console.log(msg.d);
+                    var statsupdate = "";
                     $.each(msg.d, function (index, element) {
                         console.log(element);
                         if (element.trim() != "") {
@@ -276,6 +356,7 @@
                         }
 
                     });
+                    $("#errors").html(statsupdate);
                 },
                 error: function (msg) {
                     console.log(msg)
@@ -346,7 +427,7 @@
                 $("#cpugraph").html("");
                 $("#memgraph").html("");
                 drawgraph(cpudata, "#cpugraph", 100);
-                drawgraph(memdata, "#memgraph", 1100);
+                drawgraph(memdata, "#memgraph", 1000);
                 setTimeout(recurse, 3000);
             }
             recurse();

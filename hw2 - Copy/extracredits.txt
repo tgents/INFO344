@@ -1,0 +1,17 @@
+I really only made the Hybrid List Trie, but I did spend a lot of time thinking about how to do the others, so I wrote up how I would do them.
+
+I did not get the Hybrid List Trie working in the WebService, but I did include a console application that has it working. It was basically my Trie troubleshooter application. Unfortunately, I am approaching the deadline, so I don't want to break the working web service.
+
+[10pts] Popularity (page view) based query suggestion
+  This just needs a field or two. It can store an integer for count, then the nodes would be sorted by count. This would only be for nodes that are the last letter of a word. By default this would be -1 for non word nodes. 
+  If we use a hybrid list trie, we can just put the popularity count at the end of the string, since we are factoring out numbers and symbols. It would be simple to extract that number. If we really want to we can make a helper class to story string and count and then make it comparable by count and then by string. (not sure if c# has a comparable interface like Java)
+
+[10pts] Hybrid List & Trie data structure (convert to Trie after > X entries in node)
+  Just like you suggested, have a list of strings in the node, but then once it reaches a certain number in the list, then convert the list into the children nodes. At any given time the children list or the string list should be null. The Node class would have a method that converts the string list to the children list. I think the conversion would be out of scope for the Trie since it is internal to the Node. In the Trie class, we would need to factor in the string list, so for each function of the Trie, we will need to check if the current node is using a string list or the children by checking which list is null. In doing so, we can decide what to do; either add to the string list or continue down the tree.
+  This will save a lot of memory since each node will be allocated a bunch of memory, but if we replace those nodes with a list of strings, we just keep track of a bunch of characters rather than 27 nodes, character, and any other values the node needs. One list of 10 strings with around 100 characters will be better than having 100 nodes since each character is 1 byte, while a node can take a lot more (3 or 4?) By this estimate, its 100 bytes plus a few for memory references vs 300 or 400 per node.
+
+[10pts] Handle misspelling gracefully
+  Not that graceful, but I was just thinking of recalling search with one less letter until it givens more than 10 results.
+
+[5pts] Query suggestion based on user searches
+  This would be very similar to the popularity tracking, it could even be the same. Just increment by 1 every time a user selects a suggestion or presses enter. Need to add a few functions to the overall system, but it shouldn't be too bad.

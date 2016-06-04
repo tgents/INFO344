@@ -1,4 +1,6 @@
 ﻿using HtmlAgilityPack;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Table;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,12 +10,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using System.Configuration;
+using RobotomLibrary;
 
 namespace hw3test
 {
     class Program
     {
-
         static void Main(string[] args)
         {
             //Uri baseUri = new Uri("http://cnn.com");
@@ -161,11 +164,73 @@ namespace hw3test
             //    Console.WriteLine(u.AbsoluteUri);
             //}
 
-            WebClient downloader = new WebClient();
-            string sitedata = downloader.DownloadString("http://cnn.com");
-            Console.WriteLine(sitedata);
+            //WebClient downloader = new WebClient();
+            //string sitedata = downloader.DownloadString("http://cnn.com");
+            //Console.WriteLine(sitedata);
+
+            //CloudStorageAccount storageAccount = CloudStorageAccount.Parse(
+            //  "DefaultEndpointsProtocol=https;AccountName=info344wikiblob;AccountKey=3O1EWYd6C2BzSoyis6bEX44ebDVzxoOz14yRxirhK8Gp+f7gUojeYoR76fx8DZDPOaktDK/y9RmmenLi2dcLIw==");
+            //CloudTableClient tableClient = storageAccount.CreateCloudTableClient();
+            //CloudTable statsTable = tableClient.GetTableReference("crawltable");
+
+            //Uri uri = new Uri("http://www.cnn.com/2016/05/07/us/mount-st-helens-mini-earthquakes/index.html");
+            //TableQuery<UriEntity> counterquery = new TableQuery<UriEntity>()
+            //                .Where(TableQuery.CombineFilters(
+            //                    TableQuery.GenerateFilterCondition("PartitionKey", QueryComparisons.Equal, uri.Host),
+            //                    TableOperators.And,
+            //                    TableQuery.GenerateFilterCondition("RowKey", QueryComparisons.Equal, uri.AbsolutePath.GetHashCode().ToString())));
+
+            //List<UriEntity> bean = statsTable.ExecuteQuery(counterquery).ToList();
+
+            //Console.WriteLine(bean.ElementAt(0).Title);
+            //Console.WriteLine(bean.ElementAt(0).Site);
+
+            Uri uri = new Uri("http://bleacherreport.com/sitemap/nba.xml");
+
+            XmlDocument xmldoc = new XmlDocument();
+            xmldoc.Load(uri.AbsoluteUri);
+            DateTime compare = Convert.ToDateTime("2016-04-01");
+            List<Uri> htmls = new List<Uri>();
+
+            foreach (XmlNode child in xmldoc.ChildNodes)
+            {
+                string childname = child.Name;
+                Console.WriteLine(childname);
+                if (childname.Equals("sitemapindex") || childname.Equals("urlset"))
+                {
+                    foreach (XmlNode sitemap in xmldoc.LastChild.ChildNodes)
+                    {
+                        string url = "";
+                        string date = DateTime.Now.ToString();
+                        foreach (XmlNode info in sitemap.ChildNodes)
+                        {
+                            if (info.Name.Equals("loc"))
+                            {
+                                url = info.InnerText;
+                            }
+                            else if (info.Name.Equals("lastmod"))
+                            {
+                                date = info.InnerText;
+                            }
+                        }
+                        if (!date.Equals("") && Convert.ToDateTime(date).CompareTo(compare) >= 0)
+                        {
+                            if (url.EndsWith(".xml"))
+                            {
+                            }
+                            else
+                            {
+                                Uri test = new Uri(url);
+                                htmls.Add(test);
+                                Console.WriteLine(test.AbsoluteUri);
+                            }
+                        }
+                    }
+                }
+            }
 
             Console.Read();
-        }        
+
+        }
     }
 }

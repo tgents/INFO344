@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="app2.js"></script>
   </head>
-  <body class="container-fluid">
+  <body style="margin: 0px auto; width:800px;" class="container-fluid">
     <header>
       <h1>NBA Players</h1>
       <div class="input-group">
@@ -24,7 +24,7 @@
         if(isset($_GET['player'])) {
           $searchStr = $_GET['player'];
           if($searchStr != "") {
-            $query .= " WHERE Name LIKE '%$searchStr%'";
+            $query .= " WHERE Name = '$searchStr'";
             echo "Results for $searchStr";
           }
         }

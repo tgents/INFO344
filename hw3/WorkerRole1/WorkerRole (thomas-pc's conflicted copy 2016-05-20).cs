@@ -87,20 +87,7 @@ namespace WorkerRole1
                         status = Robotom.STATUS_LOADING;
                         updateStats(stats, statTable);
                         string robotLink = commandString.Split(' ')[1] + "/robots.txt";
-                        Uri thing = new Uri(robotLink);
-                        List<Uri> sitemaps = crawler.ParseRobot(thing);
-                        if (thing.Host.Equals("cnn.com"))
-                        {
-                            sitemaps.AddRange(crawler.ParseRobot(new Uri("http://bleacherreport.com/robots.txt")));
-                        }
-                        updateStats(stats, statTable);
-                        while (sitemaps.Count > 0)
-                        {
-                            Uri next = sitemaps.ElementAt(0);
-                            sitemaps.AddRange(crawler.ParseXml(next));
-                            sitemaps.Remove(next);
-                            updateStats(stats, statTable);
-                        }
+                        crawler.ParseRobot(new Uri(robotLink));
                     }
                     commandQ.DeleteMessage(command);
                 }
@@ -113,7 +100,7 @@ namespace WorkerRole1
                         status = Robotom.STATUS_CRAWLING;
                         updateStats(stats, statTable);
                         crawler.ParseHtml(new Uri(nextHtml.AsString));
-                        htmlQ.DeleteMessageAsync(nextHtml);
+                        htmlQ.DeleteMessage(nextHtml);
                     }
                     else
                     {
@@ -138,11 +125,11 @@ namespace WorkerRole1
             stats.cpuUsage = unchecked((int) cpuprocess.NextValue());
             stats.queuesize = crawler.queueCount;
             stats.tablesize = crawler.tableCount;
-            stats.visitcount = crawler.parsed.Count();
+            stats.visitcount = crawler.visited.Count();
             System.Text.StringBuilder last = new System.Text.StringBuilder("");
-            foreach (string u in crawler.lastTen)
+            foreach (Uri u in crawler.lastTen)
             {
-                last.Append(u + ";");
+                last.Append(u.AbsoluteUri + " ");
             }
             stats.lastTen = last.ToString();
             stats.timer = unchecked((int)crawler.timer);

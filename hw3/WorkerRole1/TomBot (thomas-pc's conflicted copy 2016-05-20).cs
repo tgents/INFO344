@@ -18,9 +18,7 @@ namespace WorkerRole1
     public class TomBot
     {
         private HashSet<Uri> disallow;
-        public HashSet<string> visited { get; private set; }
-        public HashSet<string> parsed { get; private set; }
-        public HashSet<string> hosts { get; private set; }
+        public HashSet<Uri> visited { get; private set; }
 
         private CloudQueue htmlQ;
         private CloudTable resultTable;
@@ -29,16 +27,14 @@ namespace WorkerRole1
         public int queueCount { get; set; }
         public int tableCount { get; set; }
 
-        public Queue<string> lastTen { get; private set; }
+        public Queue<Uri> lastTen { get; private set; }
         public long timer { get; private set; }
 
         public TomBot(CloudQueue htmlqueue, CloudTable results, CloudTable errors, int resultscount)
         {
             disallow = new HashSet<Uri>();
-            visited = new HashSet<string>();
-            parsed = new HashSet<string>();
-            hosts = new HashSet<string>();
-            lastTen = new Queue<string>();
+            visited = new HashSet<Uri>();
+            lastTen = new Queue<Uri>();
             htmlQ = htmlqueue;
             resultTable = results;
             errorTable = errors;
@@ -52,9 +48,10 @@ namespace WorkerRole1
         //return 1 for success, 0 for fail
         public int ParseHtml(Uri uri)
         {
-            if (isDisallowed(uri))
+
+
+            if (visited.Contains(uri) || isDisallowed(uri))
             {
-                queueCount--;
                 return 0;
             }
 
@@ -67,10 +64,9 @@ namespace WorkerRole1
             }
             catch (Exception e)
             {
-                UriEntity error = new UriEntity(uri, e.Message, DateTime.Now, e.Message);
+                UriEntity error = new UriEntity(uri, e.Message, DateTime.Now);
                 errorTable.ExecuteAsync(TableOperation.Insert(error));
-                parsed.Add(uri.AbsoluteUri);
-                visited.Remove(uri.AbsoluteUri);
+                visited.Add(uri);
                 queueCount--;
                 return 0;
             }
@@ -84,55 +80,31 @@ namespace WorkerRole1
 
             if (hrefs == null)
             {
-                queueCount--;
                 return 0;
             }
+
             foreach (HtmlNode node in hrefs)
             {
                 var href = node.Attributes["href"];
                 string url = href.Value;
-
-                //remove this if crawler break
-                try
+                if (url.StartsWith("/") && !url.StartsWith("//"))
                 {
-                    Uri newsite = new Uri(uri, url);
-                    string host = newsite.Host;
-                    if (host.Equals("cnn.com") || host.Equals("www.cnn.com") || newsite.AbsoluteUri.StartsWith("http://bleacherreport.com/articles"))
+                    Uri test = new Uri("http://" + uri.Host + url);
+                    if (!visited.Contains(test))
                     {
-                        if (!visited.Contains(newsite.AbsoluteUri) && !parsed.Contains(newsite.AbsoluteUri))
-                        {
-                            htmlQ.AddMessageAsync(new CloudQueueMessage(newsite.AbsoluteUri));
-                            visited.Add(newsite.AbsoluteUri);
-                            queueCount++;
-                        }
+                        htmlQ.AddMessageAsync(new CloudQueueMessage(test.AbsoluteUri));
+                        queueCount++;
                     }
                 }
-                catch (Exception e)
+                else if (url.StartsWith("http://bleacherreport.com/articles"))
                 {
+                    Uri test = new Uri(url);
+                    if (!visited.Contains(test))
+                    {
+                        htmlQ.AddMessageAsync(new CloudQueueMessage(test.AbsoluteUri));
+                        queueCount++;
+                    }
                 }
-                //to here
-
-                //if (url.StartsWith("/") && !url.StartsWith("//"))
-                //{
-                //    Uri test = new Uri("http://" + uri.Host + url);
-                //    if (!visited.Contains(test.AbsoluteUri) && !parsed.Contains(test.AbsoluteUri))
-                //    {
-                //        htmlQ.AddMessageAsync(new CloudQueueMessage(test.AbsoluteUri));
-                //        visited.Add(test.AbsoluteUri);
-                //        queueCount++;
-                //    }
-
-                //}
-                //else if (url.StartsWith("http://bleacherreport.com/articles"))
-                //{
-                //    Uri test = new Uri(url);
-                //    if (!visited.Contains(test.AbsoluteUri) && !parsed.Contains(test.AbsoluteUri))
-                //    {
-                //        htmlQ.AddMessageAsync(new CloudQueueMessage(test.AbsoluteUri));
-                //        visited.Add(test.AbsoluteUri);
-                //        queueCount++;
-                //    }
-                //}
             }
 
             long stop = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
@@ -148,10 +120,6 @@ namespace WorkerRole1
 
             //get date
             HtmlNode lastmod = doc.DocumentNode.SelectSingleNode("//meta[@name='lastmod']");
-            if (uri.Host.Equals("bleacherreport.com"))
-            {
-                lastmod = doc.DocumentNode.SelectSingleNode("//meta[@name='pubdate']");
-            }
             string date = "";
             if (lastmod != null)
             {
@@ -160,31 +128,24 @@ namespace WorkerRole1
 
             DateTime converteddate = date.Equals("") ? new DateTime() : Convert.ToDateTime(date);
 
-            HashSet<UriEntity> words = new HashSet<UriEntity>();
-            foreach (string word in Robotom.CleanWord(title).Split(' '))
-            {
-                if (!word.Trim().Equals(""))
-                {
-                    words.Add(new UriEntity(uri, title, converteddate, word));
-                }
-
-            }
+            UriEntity insert = new UriEntity(uri, title, converteddate);
 
             try
             {
-                if (!parsed.Contains(uri.AbsoluteUri))
+                if (title.Contains("Error"))
                 {
-                    foreach (UriEntity add in words)
-                    {
-                        resultTable.ExecuteAsync(TableOperation.Insert(add));
-                        tableCount++;
-                    }
-                    lastTen.Enqueue(uri + " - \"" + title + "\"");
+                    errorTable.ExecuteAsync(TableOperation.Insert(insert));
+                }
+                else
+                {
+                    resultTable.ExecuteAsync(TableOperation.Insert(insert));
+                    tableCount++;
+
+                    lastTen.Enqueue(uri);
                     if (lastTen.Count > 10)
                     {
                         lastTen.Dequeue();
                     }
-
                 }
             }
             catch (Exception e)
@@ -192,63 +153,67 @@ namespace WorkerRole1
 
             }
 
-            parsed.Add(uri.AbsoluteUri);
-            visited.Remove(uri.AbsoluteUri);
+            visited.Add(uri);
             queueCount--;
 
             return 1;
         }
 
-        //parses a robot.txt
-        public List<Uri> ParseRobot(Uri uri)
+        //return 1 for success, 0 for fail
+        public int ParseRobot(Uri uri)
         {
-            StreamReader reader;
-            try
-            {
-                var webRequest = WebRequest.Create(@uri.AbsoluteUri);
-                var response = webRequest.GetResponse();
-                var content = response.GetResponseStream();
-                reader = new StreamReader(content);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e.Message);
-                return new List<Uri>();
-            }
+            var webRequest = WebRequest.Create(@uri.AbsoluteUri);
+
+            var response = webRequest.GetResponse();
+            var content = response.GetResponseStream();
+            var reader = new StreamReader(content);
+            Uri root = new Uri("http://" + uri.Host);
+
+            //make sure root is parsed
+            htmlQ.AddMessageAsync(new CloudQueueMessage(root.AbsoluteUri));
+            queueCount++;
 
             List<Uri> sitemaps = new List<Uri>();
 
-            bool foundUserAgent = false;
+            if (uri.AbsolutePath.StartsWith("http://cnn.com"))
+            {
+                sitemaps.Add(new Uri("http://bleacherreport.com/sitemap/nba.xml"));
+            }
+
             while (!reader.EndOfStream)
             {
                 string current = reader.ReadLine();
-                string url = current.Length > 0 ? current.Substring(current.IndexOf(' ')) : current;
-                if (current.StartsWith("user-agent", StringComparison.OrdinalIgnoreCase))
-                {
-                    foundUserAgent = url.Contains("*");
-                }
-                else if (current.StartsWith("sitemap", StringComparison.OrdinalIgnoreCase))
+                string url = current.Substring(current.IndexOf(' '));
+                if (current.StartsWith("sitemap", StringComparison.OrdinalIgnoreCase))
                 {
                     sitemaps.Add(new Uri(url));
                 }
                 else if (current.StartsWith("disallow", StringComparison.OrdinalIgnoreCase))
                 {
-                    disallow.Add(new Uri(uri, url));
+                    disallow.Add(new Uri(root, url));
                 }
             }
-
-            hosts.Add(uri.Host);
-            return sitemaps;
+            parseSiteMaps(sitemaps);
+            return 1;
         }
 
-        //parses a sitemap xml
-        public List<Uri> ParseXml(Uri uri)
+        private void parseSiteMaps(List<Uri> sitemaps)
+        {
+            while (sitemaps.Count > 0)
+            {
+                Uri next = sitemaps.ElementAt(0);
+                sitemaps.AddRange(parseXml(next));
+                sitemaps.Remove(next);
+            }
+        }
+
+        private List<Uri> parseXml(Uri uri)
         {
             XmlDocument xmldoc = new XmlDocument();
             xmldoc.Load(uri.AbsoluteUri);
             DateTime compare = Convert.ToDateTime("2016-04-01");
             List<Uri> newSitemaps = new List<Uri>();
-            foreach (XmlNode child in xmldoc.ChildNodes)
+            foreach(XmlNode child in xmldoc.ChildNodes)
             {
                 string childname = child.Name;
                 if (childname.Equals("sitemapindex") || childname.Equals("urlset"))
@@ -278,14 +243,13 @@ namespace WorkerRole1
                             else
                             {
                                 htmlQ.AddMessageAsync(new CloudQueueMessage(url));
-                                visited.Add(url);
                                 queueCount++;
                             }
                         }
                     }
                 }
             }
-
+           
             return newSitemaps;
         }
 
