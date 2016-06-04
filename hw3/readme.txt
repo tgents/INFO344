@@ -2,7 +2,6 @@ Search: http://frankensearch.thomastseng.me/
 Dashboard: http://frankensearch.thomastseng.me/admin2.html
 GitHub: https://github.com/tgents/INFO344/tree/master/hw3
 
-
 Write Up:
 
 [70pts] End-to-End experience
